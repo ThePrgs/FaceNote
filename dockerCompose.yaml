@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: qwerty
+      MYSQL_DATABASE: facenote
+    ports:
+      - "3307:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - mynetwork
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mariadb
+      PMA_USER: root
+      PMA_PASSWORD: qwerty
+    ports:
+      - "8080:80"
+    depends_on:
+      - mariadb
+    networks:
+      - mynetwork
+
+volumes:
+  mariadb_data:
+
+networks:
+  mynetwork:
