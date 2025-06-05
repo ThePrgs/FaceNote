@@ -1,28 +1,26 @@
-# Stage 1: Build the application using Maven
-FROM eclipse-temurin:21-jdk AS build
+# Use a base image with Java 21 and Maven installed
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 
-# Set working directory inside container
+# Set the working directory
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Copy the pom.xml and download dependencies (cache layer)
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-# Copy the rest of the project and build it
-COPY src ./src
+# Copy the rest of the project
+COPY . .
+
+# Package the application
 RUN mvn clean package -DskipTests
 
-# Stage 2: Run the app using a lightweight JRE
-FROM eclipse-temurin:17-jre
+# Runtime image (lighter than build image)
+FROM eclipse-temurin:21-jdk
 
-# Set working directory for the runtime container
 WORKDIR /app
 
-# Copy the jar from the builder stage
-COPY --from=build /app/target/*.jar app.jar
+# Copy the JAR from the build image
+COPY --from=build /app/target/FaceNoteBackend-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose the port your app runs on (e.g., 8080)
-EXPOSE 8080
-
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the app
+CMD ["java", "-jar", "app.jar"]
